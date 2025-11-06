@@ -10,7 +10,16 @@ const adminRoutes = require('./admin/admin');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Untuk Vercel, gunakan /tmp folder untuk uploads
+// Untuk Vercel, gunakan memorystore
+let sessionStore = null;
+if (process.env.VERCEL) {
+  const MemoryStore = require('memorystore')(session);
+  sessionStore = new MemoryStore({
+    checkPeriod: 86400000 // prune entries every 24h
+  });
+}
+
+// Multer configuration
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const uploadPath = process.env.VERCEL ? '/tmp/uploads' : 'public/uploads';
@@ -37,16 +46,25 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(methodOverride('_method'));
 
-// Session config untuk production
+// Session configuration untuk Vercel
 app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
+  store: sessionStore,
   cookie: { 
-    secure: process.env.NODE_ENV === 'production',
-    maxAge: 24 * 60 * 60 * 1000
+    secure: false, 
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    httpOnly: true,
+    sameSite: 'lax'
   }
 }));
+
+app.use((req, res, next) => {
+  console.log('Session ID:', req.sessionID);
+  console.log('Session data:', req.session);
+  next();
+});
 
 // Routes
 app.get('/', (req, res) => {
@@ -107,15 +125,43 @@ app.get('/projects', async (req, res) => {
 // Admin routes
 app.use('/admin', adminRoutes);
 
-// Health check untuk Vercel
+// Debug routes
+app.get('/debug/session', (req, res) => {
+  res.json({
+    sessionID: req.sessionID,
+    session: req.session,
+    cookies: req.headers.cookie,
+    environment: process.env.NODE_ENV,
+    vercel: process.env.VERCEL
+  });
+});
+
+app.get('/debug/clear-session', (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      res.json({ error: err.message });
+    } else {
+      res.json({ message: 'Session cleared' });
+    }
+  });
+});
+
+// Health check
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'OK', timestamp: new Date().toISOString() });
+  res.json({ 
+    status: 'OK', 
+    timestamp: new Date().toISOString(),
+    sessionWorking: !!req.sessionID 
+  });
 });
 
 // Initialize database and start server
-db.init().then(() => {
+db.init().then(async () => {
+  await db.testConnection();
+  
   if (process.env.VERCEL) {
     console.log('🚀 Running on Vercel');
+    console.log('🔐 Session store: MemoryStore');
   } else {
     app.listen(PORT, () => {
       console.log(`🚀 Server running on http://localhost:${PORT}`);
@@ -126,5 +172,4 @@ db.init().then(() => {
   console.error('Failed to start server:', error);
 });
 
-// Export untuk Vercel
 module.exports = app;

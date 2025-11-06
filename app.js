@@ -4,29 +4,34 @@ const path = require('path');
 const multer = require('multer');
 const methodOverride = require('method-override');
 const session = require('express-session');
+const SQLiteStore = require('connect-sqlite3')(session); // ✅ IMPORTANT: Perhatikan kurungnya!
 const db = require('./database/database');
 const adminRoutes = require('./admin/admin');
-const fs = require('fs')
+const fs = require('fs');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-let sessionStore = null;
-if (process.env.VERCEL) {
-  const MemoryStore = require('memorystore')(session);
-  sessionStore = new MemoryStore({
-    checkPeriod: 86400000 
-  });
-}
+// ✅ SQLite session store dengan connect-sqlite3
+const sessionStore = new SQLiteStore({
+  db: process.env.VERCEL ? '/tmp/projects.db' : 'database/projects.db',
+  table: 'sessions',
+  concurrentDB: true
+});
 
+// Multer configuration
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const uploadPath = '/tmp/uploads';
-    
-    if (!fs.existsSync(uploadPath)) {
-      fs.mkdirSync(uploadPath, { recursive: true });
+    try {
+      if (!fs.existsSync(uploadPath)) {
+        fs.mkdirSync(uploadPath, { recursive: true });
+      }
+      cb(null, uploadPath);
+    } catch (error) {
+      console.error('Error creating upload directory:', error);
+      cb(error, null);
     }
-    
-    cb(null, uploadPath);
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
@@ -41,40 +46,40 @@ const upload = multer({
   }
 });
 
+// Middleware
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.static('public'));
-if (process.env.VERCEL) {
-  app.use('/uploads', express.static('/tmp/uploads'));
-} else {
-  app.use('/uploads', express.static('public/uploads'));
-}
-
+app.use('/uploads', express.static('/tmp/uploads'));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(methodOverride('_method'));
 
-// Session configuration untuk Vercel
+// ✅ Session configuration dengan connect-sqlite3
 app.use(session({
-  secret: process.env.SESSION_SECRET,
+  name: 'knmedan.sid',
+  secret: process.env.SESSION_SECRET || 'fallback-secret-key-for-development',
   resave: false,
   saveUninitialized: false,
   store: sessionStore,
   cookie: { 
-    secure: false, 
-    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    secure: false,
     httpOnly: true,
+    maxAge: 24 * 60 * 60 * 1000,
     sameSite: 'lax'
   }
 }));
 
+// Debug middleware
 app.use((req, res, next) => {
+  console.log('=== SESSION DEBUG ===');
   console.log('Session ID:', req.sessionID);
-  console.log('Session data:', req.session);
+  console.log('Session admin:', req.session?.admin);
+  console.log('=====================');
   next();
 });
 
-// Routes
+// Routes (tetap sama)
 app.get('/', (req, res) => {
   res.render('index');
 });
@@ -90,9 +95,6 @@ app.post('/upload', upload.array('screenshots', 3), async (req, res) => {
   try {
     const { projectName, projectLink, studentName, teacherName, moduleName } = req.body;
     const screenshots = req.files ? req.files.map(file => file.filename) : [];
-
-    console.log('Uploaded files:', req.files);
-    console.log('Screenshots array:', screenshots);
 
     if (!screenshots || screenshots.length !== 3) {
       return res.render('upload', { 
@@ -141,19 +143,8 @@ app.get('/debug/session', (req, res) => {
   res.json({
     sessionID: req.sessionID,
     session: req.session,
-    cookies: req.headers.cookie,
     environment: process.env.NODE_ENV,
     vercel: process.env.VERCEL
-  });
-});
-
-app.get('/debug/clear-session', (req, res) => {
-  req.session.destroy((err) => {
-    if (err) {
-      res.json({ error: err.message });
-    } else {
-      res.json({ message: 'Session cleared' });
-    }
   });
 });
 
@@ -162,7 +153,9 @@ app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'OK', 
     timestamp: new Date().toISOString(),
-    sessionWorking: !!req.sessionID 
+    sessionWorking: !!req.sessionID,
+    sessionAdmin: !!req.session?.admin,
+    sessionStore: 'connect-sqlite3'
   });
 });
 
@@ -170,13 +163,20 @@ app.get('/api/health', (req, res) => {
 db.init().then(async () => {
   await db.testConnection();
   
+  // Create uploads directory
+  const uploadPath = '/tmp/uploads';
+  if (!fs.existsSync(uploadPath)) {
+    fs.mkdirSync(uploadPath, { recursive: true });
+  }
+  
   if (process.env.VERCEL) {
     console.log('🚀 Running on Vercel');
-    console.log('🔐 Session store: MemoryStore');
+    console.log('🔐 Session store: connect-sqlite3');
   } else {
     app.listen(PORT, () => {
       console.log(`🚀 Server running on http://localhost:${PORT}`);
       console.log(`🔐 Admin login: http://localhost:${PORT}/admin/login`);
+      console.log(`💾 Session store: connect-sqlite3`);
     });
   }
 }).catch(error => {

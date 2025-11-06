@@ -23,7 +23,7 @@ const db = new sqlite3.Database(dbPath);
 const init = () => {
     return new Promise((resolve, reject) => {
         console.log('Initializing DB at:', dbPath);
-        
+
         db.run(`
       CREATE TABLE IF NOT EXISTS projects (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -42,7 +42,7 @@ const init = () => {
                 reject(err);
             } else {
                 console.log('Projects table created/verified');
-                
+
                 db.run(`
           CREATE TABLE IF NOT EXISTS admins (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -228,7 +228,7 @@ const getAllProjects = () => {
 const updateProjectStatus = (projectId, status) => {
     return new Promise((resolve, reject) => {
         console.log(`Updating project ${projectId} status to: ${status}`);
-        
+
         db.run(`
       UPDATE projects 
       SET status = ? 
@@ -248,7 +248,7 @@ const updateProjectStatus = (projectId, status) => {
 const deleteProject = (projectId) => {
     return new Promise((resolve, reject) => {
         console.log(`Deleting project: ${projectId}`);
-        
+
         db.run(`DELETE FROM projects WHERE id = ?`, [projectId], function (err) {
             if (err) {
                 console.error('Error deleting project:', err);
@@ -265,7 +265,7 @@ const deleteProject = (projectId) => {
 const getAdminByUsername = (username) => {
     return new Promise((resolve, reject) => {
         console.log('Looking for admin:', username);
-        
+
         db.get(`SELECT * FROM admins WHERE username = ?`, [username], (err, row) => {
             if (err) {
                 console.error('Error finding admin:', err);

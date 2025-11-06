@@ -17,7 +17,6 @@ router.post('/login', isNotAuthenticated, async (req, res) => {
   try {
     const { username, password } = req.body;
     console.log('POST /admin/login - Attempting login for:', username);
-    console.log('Session before login:', req.sessionID, req.session);
 
     const admin = await db.getAdminByUsername(username);
     if (!admin) {
@@ -52,21 +51,21 @@ router.post('/login', isNotAuthenticated, async (req, res) => {
       }
 
       console.log('Login successful:', username);
-      console.log('Session after login:', req.sessionID, req.session);
+      console.log('Session after login:', req.session);
       res.redirect('/admin/dashboard');
     });
 
   } catch (error) {
     console.error('Login error:', error);
     res.render('admin/login', { 
-      error: 'Login failed: ' + error.message
+      error: 'Login failed. Please try again.'
     });
   }
 });
 
-// Admin Dashboard dengan session check
+// Admin Dashboard
 router.get('/dashboard', isAuthenticated, async (req, res) => {
-  console.log('GET /admin/dashboard - Session:', req.sessionID, req.session);
+  console.log('GET /admin/dashboard - Session:', req.sessionID);
   
   try {
     const pendingCount = (await db.getPendingProjects()).length;
@@ -78,8 +77,10 @@ router.get('/dashboard', isAuthenticated, async (req, res) => {
       totalProjects
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).send('Error loading dashboard');
+    console.error('Dashboard error:', error);
+    res.status(500).render('error', { 
+      error: 'Error loading dashboard' 
+    });
   }
 });
 
@@ -102,7 +103,8 @@ router.get('/debug', isAuthenticated, (req, res) => {
   res.json({
     sessionID: req.sessionID,
     admin: req.session.admin,
-    environment: process.env.NODE_ENV
+    environment: process.env.NODE_ENV,
+    timestamp: new Date().toISOString()
   });
 });
 
@@ -117,8 +119,10 @@ router.get('/projects/pending', isAuthenticated, async (req, res) => {
       type: 'pending'
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).send('Error loading projects');
+    console.error('Pending projects error:', error);
+    res.status(500).render('error', { 
+      error: 'Error loading pending projects' 
+    });
   }
 });
 
@@ -133,15 +137,18 @@ router.get('/projects/all', isAuthenticated, async (req, res) => {
       type: 'all'
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).send('Error loading projects');
+    console.error('All projects error:', error);
+    res.status(500).render('error', { 
+      error: 'Error loading all projects' 
+    });
   }
 });
 
+// Approve Project
 router.post('/projects/:id/approve', isAuthenticated, async (req, res) => {
   try {
     const projectId = req.params.id;
-    console.log('Approving project:', projectId);
+    console.log('Approving project:', projectId, 'by:', req.session.admin.username);
     
     const result = await db.updateProjectStatus(projectId, 'approved');
     
@@ -162,15 +169,16 @@ router.post('/projects/:id/approve', isAuthenticated, async (req, res) => {
     console.error('Error approving project:', error);
     res.status(500).json({ 
       success: false, 
-      error: 'Failed to approve project: ' + error.message 
+      error: 'Failed to approve project' 
     });
   }
 });
 
+// Reject Project
 router.post('/projects/:id/reject', isAuthenticated, async (req, res) => {
   try {
     const projectId = req.params.id;
-    console.log('Rejecting project:', projectId);
+    console.log('Rejecting project:', projectId, 'by:', req.session.admin.username);
     
     const result = await db.updateProjectStatus(projectId, 'rejected');
     
@@ -191,15 +199,16 @@ router.post('/projects/:id/reject', isAuthenticated, async (req, res) => {
     console.error('Error rejecting project:', error);
     res.status(500).json({ 
       success: false, 
-      error: 'Failed to reject project: ' + error.message 
+      error: 'Failed to reject project' 
     });
   }
 });
 
+// Delete Project
 router.delete('/projects/:id', isAuthenticated, async (req, res) => {
   try {
     const projectId = req.params.id;
-    console.log('Deleting project:', projectId);
+    console.log('Deleting project:', projectId, 'by:', req.session.admin.username);
     
     const result = await db.deleteProject(projectId);
     
@@ -220,11 +229,12 @@ router.delete('/projects/:id', isAuthenticated, async (req, res) => {
     console.error('Error deleting project:', error);
     res.status(500).json({ 
       success: false, 
-      error: 'Failed to delete project: ' + error.message 
+      error: 'Failed to delete project' 
     });
   }
 });
 
+// Get Project Details
 router.get('/projects/:id', isAuthenticated, async (req, res) => {
   try {
     const projectId = req.params.id;
@@ -248,7 +258,7 @@ router.get('/projects/:id', isAuthenticated, async (req, res) => {
     console.error('Error getting project:', error);
     res.status(500).json({ 
       success: false, 
-      error: 'Failed to get project: ' + error.message 
+      error: 'Failed to get project details' 
     });
   }
 });

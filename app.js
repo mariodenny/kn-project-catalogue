@@ -8,12 +8,13 @@ const db = require('./database/database');
 const adminRoutes = require('./admin/admin');
 
 const app = express();
-const PORT = process.env.SERVER_PORT || 3000;
+const PORT = process.env.PORT || 3000;
 
-// Multer configuration
+// Untuk Vercel, gunakan /tmp folder untuk uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, 'public/uploads/');
+    const uploadPath = process.env.VERCEL ? '/tmp/uploads' : 'public/uploads';
+    cb(null, uploadPath);
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
@@ -24,7 +25,7 @@ const storage = multer.diskStorage({
 const upload = multer({ 
   storage: storage,
   limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB limit
+    fileSize: 5 * 1024 * 1024
   }
 });
 
@@ -35,13 +36,15 @@ app.use(express.static('public'));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(methodOverride('_method'));
+
+// Session config untuk production
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'fallback-secret-key-change-in-production',
+  secret: process.env.SESSION_SECRET || 'kn-medan-secret-2024',
   resave: false,
   saveUninitialized: false,
   cookie: { 
-    secure: false, // Set true jika menggunakan HTTPS
-    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 24 * 60 * 60 * 1000
   }
 }));
 
@@ -56,7 +59,6 @@ app.get('/upload', (req, res) => {
     formData: null 
   });
 });
-
 
 app.post('/upload', upload.array('screenshots', 3), async (req, res) => {
   try {
@@ -94,7 +96,7 @@ app.post('/upload', upload.array('screenshots', 3), async (req, res) => {
 app.get('/projects', async (req, res) => {
   try {
     const { search, category } = req.query;
-    const projects = await db.getProjects(search, category, true); // Only approved projects
+    const projects = await db.getProjects(search, category, true);
     res.render('projects', { projects, search, category });
   } catch (error) {
     console.error(error);
@@ -105,12 +107,24 @@ app.get('/projects', async (req, res) => {
 // Admin routes
 app.use('/admin', adminRoutes);
 
+// Health check untuk Vercel
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'OK', timestamp: new Date().toISOString() });
+});
+
 // Initialize database and start server
 db.init().then(() => {
-  app.listen(PORT, () => {
-    console.log(`🚀 Server running on http://localhost:${PORT}`);
-    console.log(`🔐 Admin login: http://localhost:${PORT}/admin/login`);
-  });
+  if (process.env.VERCEL) {
+    console.log('🚀 Running on Vercel');
+  } else {
+    app.listen(PORT, () => {
+      console.log(`🚀 Server running on http://localhost:${PORT}`);
+      console.log(`🔐 Admin login: http://localhost:${PORT}/admin/login`);
+    });
+  }
 }).catch(error => {
   console.error('Failed to start server:', error);
 });
+
+// Export untuk Vercel
+module.exports = app;

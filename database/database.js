@@ -1,14 +1,24 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const bcrypt = require('bcryptjs');
+const fs = require('fs')
 require('dotenv').config();
 
-const dbPath = path.join(__dirname, 'projects.db');
+const dbPath = process.env.VERCEL 
+  ? '/tmp/projects.db' 
+  : path.join(__dirname, 'projects.db');
+
+// Buat folder uploads di /tmp jika di Vercel
+if (process.env.VERCEL) {
+  const tmpUploads = '/tmp/uploads';
+  if (!fs.existsSync(tmpUploads)) {
+    fs.mkdirSync(tmpUploads, { recursive: true });
+  }
+}
 const db = new sqlite3.Database(dbPath);
 
 const init = () => {
   return new Promise((resolve, reject) => {
-    // Projects table dengan status approval
     db.run(`
       CREATE TABLE IF NOT EXISTS projects (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -18,13 +28,12 @@ const init = () => {
         teacherName TEXT,
         moduleName TEXT NOT NULL,
         screenshots TEXT,
-        status TEXT DEFAULT 'pending', -- pending, approved, rejected
+        status TEXT DEFAULT 'pending',
         createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
       )
     `, (err) => {
       if (err) reject(err);
       else {
-        // Admin table
         db.run(`
           CREATE TABLE IF NOT EXISTS admins (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -35,7 +44,6 @@ const init = () => {
         `, async (err) => {
           if (err) reject(err);
           else {
-            // Create default admin account
             await createDefaultAdmin();
             resolve();
           }
@@ -48,7 +56,7 @@ const init = () => {
 const createDefaultAdmin = () => {
   return new Promise((resolve, reject) => {
     const defaultUsername = process.env.ADMIN_USERNAME
-    const defaultPassword = process.env.ADMIN_PASSWORD 
+    const defaultPassword = process.env.ADMIN_PASSWORD
     
     const hashedPassword = bcrypt.hashSync(defaultPassword, 10);
     
@@ -75,6 +83,7 @@ const addProject = (project) => {
     });
   });
 };
+
 const getProjects = (search = '', category = '', approvedOnly = true) => {
   return new Promise((resolve, reject) => {
     let query = `SELECT * FROM projects WHERE 1=1`;

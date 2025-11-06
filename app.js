@@ -39,7 +39,7 @@ app.use(methodOverride('_method'));
 
 // Session config untuk production
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'kn-medan-secret-2024',
+  secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
   cookie: { 

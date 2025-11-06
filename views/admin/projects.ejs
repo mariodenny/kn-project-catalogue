@@ -122,75 +122,123 @@
 </div>
 
 <script>
-    function openImage(src) {
-        document.getElementById('modalImage').src = src;
-        document.getElementById('imageModal').classList.remove('hidden');
-        document.getElementById('imageModal').classList.add('flex');
-    }
+function openImage(src) {
+    document.getElementById('modalImage').src = src;
+    document.getElementById('imageModal').classList.remove('hidden');
+    document.getElementById('imageModal').classList.add('flex');
+}
 
-    function closeImage() {
-        document.getElementById('imageModal').classList.add('hidden');
-        document.getElementById('imageModal').classList.remove('flex');
-    }
+function closeImage() {
+    document.getElementById('imageModal').classList.add('hidden');
+    document.getElementById('imageModal').classList.remove('flex');
+}
 
-    async function approveProject(projectId) {
-        if (confirm('Are you sure you want to approve this project?')) {
+async function approveProject(projectId) {
+    if (confirm('Are you sure you want to approve this project?')) {
+        try {
             const response = await fetch(`/admin/projects/${projectId}/approve`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
                 }
             });
-
+            
             const result = await response.json();
+            
             if (result.success) {
-                location.reload();
+                showNotification('Project approved successfully!', 'success');
+                // Refresh page after 1 second
+                setTimeout(() => {
+                    location.reload();
+                }, 1000);
             } else {
-                alert('Failed to approve project');
+                showNotification('Failed to approve project: ' + result.error, 'error');
             }
+        } catch (error) {
+            console.error('Error:', error);
+            showNotification('Network error while approving project', 'error');
         }
     }
+}
 
-    async function rejectProject(projectId) {
-        if (confirm('Are you sure you want to reject this project?')) {
+async function rejectProject(projectId) {
+    if (confirm('Are you sure you want to reject this project?')) {
+        try {
             const response = await fetch(`/admin/projects/${projectId}/reject`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
                 }
             });
-
+            
             const result = await response.json();
+            
             if (result.success) {
-                location.reload();
+                showNotification('Project rejected successfully!', 'success');
+                setTimeout(() => {
+                    location.reload();
+                }, 1000);
             } else {
-                alert('Failed to reject project');
+                showNotification('Failed to reject project: ' + result.error, 'error');
             }
+        } catch (error) {
+            console.error('Error:', error);
+            showNotification('Network error while rejecting project', 'error');
         }
     }
+}
 
-    async function deleteProject(projectId) {
-        if (confirm('Are you sure you want to delete this project? This action cannot be undone.')) {
+async function deleteProject(projectId) {
+    if (confirm('Are you sure you want to delete this project? This action cannot be undone.')) {
+        try {
             const response = await fetch(`/admin/projects/${projectId}`, {
                 method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json'
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
                 }
             });
-
+            
             const result = await response.json();
+            
             if (result.success) {
-                location.reload();
+                showNotification('Project deleted successfully!', 'success');
+                setTimeout(() => {
+                    location.reload();
+                }, 1000);
             } else {
-                alert('Failed to delete project');
+                showNotification('Failed to delete project: ' + result.error, 'error');
             }
+        } catch (error) {
+            console.error('Error:', error);
+            showNotification('Network error while deleting project', 'error');
         }
     }
+}
 
-    // Close modal on background click
-    document.getElementById('imageModal').addEventListener('click', function (e) {
-        if (e.target === this) closeImage();
-    });
+// Notification function
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${
+        type === 'success' ? 'bg-green-500 text-white' :
+        type === 'error' ? 'bg-red-500 text-white' :
+        'bg-blue-500 text-white'
+    }`;
+    notification.textContent = message;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
+}
+
+// Close modal on background click
+document.getElementById('imageModal').addEventListener('click', function(e) {
+    if (e.target === this) closeImage();
+});
 </script>
 
 <%- include('../partials/footer') %>

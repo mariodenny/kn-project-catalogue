@@ -106,23 +106,6 @@ router.get('/debug', isAuthenticated, (req, res) => {
   });
 });
 
-// Admin Dashboard
-router.get('/dashboard', isAuthenticated, async (req, res) => {
-  try {
-    const pendingCount = (await db.getPendingProjects()).length;
-    const totalProjects = (await db.getAllProjects()).length;
-    
-    res.render('admin/dashboard', {
-      admin: req.session.admin,
-      pendingCount,
-      totalProjects
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).send('Error loading dashboard');
-  }
-});
-
 // Manage Projects - Pending Approval
 router.get('/projects/pending', isAuthenticated, async (req, res) => {
   try {
@@ -155,36 +138,118 @@ router.get('/projects/all', isAuthenticated, async (req, res) => {
   }
 });
 
-// Approve Project
 router.post('/projects/:id/approve', isAuthenticated, async (req, res) => {
   try {
-    await db.updateProjectStatus(req.params.id, 'approved');
-    res.json({ success: true });
+    const projectId = req.params.id;
+    console.log('Approving project:', projectId);
+    
+    const result = await db.updateProjectStatus(projectId, 'approved');
+    
+    if (result > 0) {
+      console.log('Project approved successfully:', projectId);
+      res.json({ 
+        success: true, 
+        message: 'Project approved successfully' 
+      });
+    } else {
+      console.log('Project not found for approval:', projectId);
+      res.status(404).json({ 
+        success: false, 
+        error: 'Project not found' 
+      });
+    }
   } catch (error) {
-    console.error(error);
-    res.json({ success: false, error: 'Failed to approve project' });
+    console.error('Error approving project:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to approve project: ' + error.message 
+    });
   }
 });
 
-// Reject Project
 router.post('/projects/:id/reject', isAuthenticated, async (req, res) => {
   try {
-    await db.updateProjectStatus(req.params.id, 'rejected');
-    res.json({ success: true });
+    const projectId = req.params.id;
+    console.log('Rejecting project:', projectId);
+    
+    const result = await db.updateProjectStatus(projectId, 'rejected');
+    
+    if (result > 0) {
+      console.log('Project rejected successfully:', projectId);
+      res.json({ 
+        success: true, 
+        message: 'Project rejected successfully' 
+      });
+    } else {
+      console.log('Project not found for rejection:', projectId);
+      res.status(404).json({ 
+        success: false, 
+        error: 'Project not found' 
+      });
+    }
   } catch (error) {
-    console.error(error);
-    res.json({ success: false, error: 'Failed to reject project' });
+    console.error('Error rejecting project:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to reject project: ' + error.message 
+    });
   }
 });
 
-// Delete Project
 router.delete('/projects/:id', isAuthenticated, async (req, res) => {
   try {
-    await db.deleteProject(req.params.id);
-    res.json({ success: true });
+    const projectId = req.params.id;
+    console.log('Deleting project:', projectId);
+    
+    const result = await db.deleteProject(projectId);
+    
+    if (result > 0) {
+      console.log('Project deleted successfully:', projectId);
+      res.json({ 
+        success: true, 
+        message: 'Project deleted successfully' 
+      });
+    } else {
+      console.log('Project not found for deletion:', projectId);
+      res.status(404).json({ 
+        success: false, 
+        error: 'Project not found' 
+      });
+    }
   } catch (error) {
-    console.error(error);
-    res.json({ success: false, error: 'Failed to delete project' });
+    console.error('Error deleting project:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to delete project: ' + error.message 
+    });
+  }
+});
+
+router.get('/projects/:id', isAuthenticated, async (req, res) => {
+  try {
+    const projectId = req.params.id;
+    console.log('Getting project details:', projectId);
+    
+    const allProjects = await db.getAllProjects();
+    const project = allProjects.find(p => p.id == projectId);
+    
+    if (project) {
+      res.json({ 
+        success: true, 
+        project 
+      });
+    } else {
+      res.status(404).json({ 
+        success: false, 
+        error: 'Project not found' 
+      });
+    }
+  } catch (error) {
+    console.error('Error getting project:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to get project: ' + error.message 
+    });
   }
 });
 

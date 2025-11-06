@@ -10,19 +10,22 @@ const adminRoutes = require('./admin/admin');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Untuk Vercel, gunakan memorystore
 let sessionStore = null;
 if (process.env.VERCEL) {
   const MemoryStore = require('memorystore')(session);
   sessionStore = new MemoryStore({
-    checkPeriod: 86400000 // prune entries every 24h
+    checkPeriod: 86400000 
   });
 }
 
-// Multer configuration
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadPath = process.env.VERCEL ? '/tmp/uploads' : 'public/uploads';
+    const uploadPath = '/tmp/uploads';
+    
+    if (!fs.existsSync(uploadPath)) {
+      fs.mkdirSync(uploadPath, { recursive: true });
+    }
+    
     cb(null, uploadPath);
   },
   filename: (req, file, cb) => {
@@ -38,10 +41,15 @@ const upload = multer({
   }
 });
 
-// Middleware
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.static('public'));
+if (process.env.VERCEL) {
+  app.use('/uploads', express.static('/tmp/uploads'));
+} else {
+  app.use('/uploads', express.static('public/uploads'));
+}
+
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(methodOverride('_method'));
@@ -83,6 +91,9 @@ app.post('/upload', upload.array('screenshots', 3), async (req, res) => {
     const { projectName, projectLink, studentName, teacherName, moduleName } = req.body;
     const screenshots = req.files ? req.files.map(file => file.filename) : [];
 
+    console.log('Uploaded files:', req.files);
+    console.log('Screenshots array:', screenshots);
+
     if (!screenshots || screenshots.length !== 3) {
       return res.render('upload', { 
         error: 'Please upload exactly 3 screenshots',
@@ -103,7 +114,7 @@ app.post('/upload', upload.array('screenshots', 3), async (req, res) => {
       message: 'Project submitted successfully! It will be visible after admin approval.' 
     });
   } catch (error) {
-    console.error(error);
+    console.error('Upload error:', error);
     res.render('upload', { 
       error: 'Error uploading project. Please try again.',
       formData: req.body 

@@ -1,0 +1,68 @@
+<%- include('../partials/header') %>
+
+<div class="container mx-auto px-4 py-8 flex-1">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-800">Admin Dashboard</h1>
+        <p class="text-gray-600">Welcome, <%= admin.username %>!</p>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid md:grid-cols-2 gap-6 mb-8">
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center">
+                <div class="bg-yellow-100 p-3 rounded-full mr-4">
+                    <svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="text-2xl font-bold text-gray-800"><%= pendingCount %></h3>
+                    <p class="text-gray-600">Projects Pending Approval</p>
+                </div>
+            </div>
+            <a href="/admin/projects/pending" class="block mt-4 text-blue-600 hover:text-blue-800 font-semibold">
+                Review Pending Projects →
+            </a>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center">
+                <div class="bg-blue-100 p-3 rounded-full mr-4">
+                    <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="text-2xl font-bold text-gray-800"><%= totalProjects %></h3>
+                    <p class="text-gray-600">Total Projects</p>
+                </div>
+            </div>
+            <a href="/admin/projects/all" class="block mt-4 text-blue-600 hover:text-blue-800 font-semibold">
+                Manage All Projects →
+            </a>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">Quick Actions</h2>
+        <div class="flex space-x-4">
+            <a href="/admin/projects/pending" 
+               class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 transition">
+                Review Pending
+            </a>
+            <a href="/admin/projects/all" 
+               class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition">
+                All Projects
+            </a>
+            <form method="POST" action="/admin/logout" class="inline">
+                <button type="submit" 
+                        class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition">
+                    Logout
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- <%- include('../partials/footer') %> -->

@@ -1,0 +1,116 @@
+<%- include('partials/header') %>
+
+<div class="container mx-auto px-4 py-8 max-w-2xl">
+    <h1 class="text-3xl font-bold text-gray-800 mb-8 text-center">Upload Your Project</h1>
+
+    <% if (error) { %>
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
+            <%= error %>
+        </div>
+    <% } %>
+
+    <form action="/upload" method="POST" enctype="multipart/form-data" class="bg-white rounded-lg shadow-md p-6">
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="projectName">
+                Project Name *
+            </label>
+            <input type="text" id="projectName" name="projectName" required
+                class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value="<%= formData && formData.projectName ? formData.projectName : '' %>">
+        </div>
+
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="projectLink">
+                Project Link (URL)
+            </label>
+            <input type="url" id="projectLink" name="projectLink"
+                class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="https://"
+                value="<%= formData && formData.projectLink ? formData.projectLink : '' %>">
+        </div>
+        
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="studentName">
+                Student Name
+            </label>
+            <input type="text" id="studentName" name="studentName"
+                class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value="<%= formData && formData.studentName ? formData.studentName : '' %>">
+        </div>
+        
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="teacherName">
+                Teacher Name
+            </label>
+            <input type="text" id="teacherName" name="teacherName"
+                class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value="<%= formData && formData.teacherName ? formData.teacherName : '' %>">
+        </div>
+
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="moduleName">
+                Module Name *
+            </label>
+            <select id="moduleName" name="moduleName" required
+                class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">Select a module</option>
+                
+                <!-- JK 8-12 Modules -->
+                <optgroup label="JK 8-12">
+                    <option value="2D Games with Roblox" <%= formData && formData.moduleName === '2D Games with Roblox' ? 'selected' : '' %>>2D Games with Roblox</option>
+                    <option value="Mobile Apps Development" <%= formData && formData.moduleName === 'Mobile Apps Development' ? 'selected' : '' %>>Mobile Apps Development</option>
+                    <option value="Roblox I" <%= formData && formData.moduleName === 'Roblox I' ? 'selected' : '' %>>Roblox I</option>
+                    <option value="Roblox II" <%= formData && formData.moduleName === 'Roblox II' ? 'selected' : '' %>>Roblox II</option>
+                    <option value="NFT ART" <%= formData && formData.moduleName === 'NFT ART' ? 'selected' : '' %>>NFT ART</option>
+                    <option value="Website Development" <%= formData && formData.moduleName === 'Website Development' ? 'selected' : '' %>>Website Development</option>
+                </optgroup>
+                
+                <!-- JK 12-16 Modules -->
+                <optgroup label="JK 12-16">
+                    <option value="Python First Programmes" <%= formData && formData.moduleName === 'Python First Programmes' ? 'selected' : '' %>>Python First Programmes</option>
+                    <option value="Python Arcade Games" <%= formData && formData.moduleName === 'Python Arcade Games' ? 'selected' : '' %>>Python Arcade Games</option>
+                    <option value="Website Development" <%= formData && formData.moduleName === 'Website Development' ? 'selected' : '' %>>Website Development</option>
+                    <option value="Javascript" <%= formData && formData.moduleName === 'Javascript' ? 'selected' : '' %>>Javascript</option>
+                    <option value="IoT" <%= formData && formData.moduleName === 'IoT' ? 'selected' : '' %>>IoT</option>
+                    <option value="2D&3D Design" <%= formData && formData.moduleName === '2D&3D Design' ? 'selected' : '' %>>2D&3D Design</option>
+                    <option value="Junior CEO" <%= formData && formData.moduleName === 'Junior CEO' ? 'selected' : '' %>>Junior CEO</option>
+                    <option value="Drone Coding & Autonomous Flight" <%= formData && formData.moduleName === 'Drone Coding & Autonomous Flight' ? 'selected' : '' %>>Drone Coding & Autonomous Flight</option>
+                    <option value="Arduino Smart Car" <%= formData && formData.moduleName === 'Arduino Smart Car' ? 'selected' : '' %>>Arduino Smart Car</option>
+                    <option value="Connected World - Smart IoT Solutions" <%= formData && formData.moduleName === 'Connected World - Smart IoT Solutions' ? 'selected' : '' %>>Connected World - Smart IoT Solutions</option>
+                </optgroup>
+                
+                <!-- LK 4-6 Modules -->
+                <optgroup label="LK 4-6">
+                    <option value="Robo Explorers" <%= formData && formData.moduleName === 'Robo Explorers' ? 'selected' : '' %>>Robo Explorers</option>
+                    <option value="My First Smart Robot" <%= formData && formData.moduleName === 'My First Smart Robot' ? 'selected' : '' %>>My First Smart Robot</option>
+                </optgroup>
+                
+                <!-- LK 6-8 Modules -->
+                <optgroup label="LK 6-8">
+                    <option value="Smart Moves with AI Bot" <%= formData && formData.moduleName === 'Smart Moves with AI Bot' ? 'selected' : '' %>>Smart Moves with AI Bot</option>
+                    <option value="Code Your Robo-Car" <%= formData && formData.moduleName === 'Code Your Robo-Car' ? 'selected' : '' %>>Code Your Robo-Car</option>
+                </optgroup>
+            </select>
+        </div>
+
+        <div class="mb-6">
+            <label class="block text-gray-700 text-sm font-bold mb-2">
+                Screenshots (Required - 3 images) *
+            </label>
+            <input type="file" id="screenshots" name="screenshots" multiple accept="image/*" required
+                class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <p class="text-sm text-gray-500 mt-1">Please upload exactly 3 screenshots of your project</p>
+        </div>
+
+        <div class="flex justify-between">
+            <a href="/" class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 transition">
+                Cancel
+            </a>
+            <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition">
+                Upload Project
+            </button>
+        </div>
+    </form>
+</div>
+
+<%- include('partials/footer') %>

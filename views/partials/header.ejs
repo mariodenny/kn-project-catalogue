@@ -1,29 +1,48 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kodingnext Medan</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="/css/style.css?v=1.0">
-    <link rel="icon" type="image/x-icon" href="/favicon.ico?v=1.0">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kodingnext Medan</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico?v=1.0">
+  <style>
+    #mobile-menu { transition: all 0.3s ease-in-out; }
+  </style>
 </head>
+
 <body class="bg-gray-50 flex flex-col min-h-screen">
-    <nav class="bg-blue-600 text-white p-4">
-        <div class="container mx-auto flex items-center justify-between">
-            <!-- Logo + Title Section -->
-            <div class="flex items-center space-x-3">
-                <img src="/logo.png?v=1.0" alt="KN Medan Logo" class="h-8 w-8">
-                <a href="/" class="text-xl font-bold whitespace-nowrap">KN Medan Projects Showcase</a>
-            </div>
-            
-            <!-- Navigation Links -->
-            <div class="flex items-center space-x-6">
-                <a href="/" class="hover:text-blue-200 transition duration-200 font-medium">Home</a>
-                <a href="/upload" class="hover:text-blue-200 transition duration-200 font-medium">Upload Project</a>
-                <a href="/projects" class="hover:text-blue-200 transition duration-200 font-medium">Browse Projects</a>
-            </div>
-        </div>
-    </nav>
-    
-    <main class="flex-1">
+  <!-- NAVBAR -->
+  <nav class="bg-[#0077b6] text-white p-4 shadow-lg">
+    <div class="container mx-auto flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <img src="/logo.png?v=1.0" alt="KN Medan Logo" class="h-9 w-9 rounded-md">
+        <a href="/" class="text-lg md:text-xl font-semibold whitespace-nowrap hover:text-[#00b4d8] transition">
+          KN Medan Projects Showcase
+        </a>
+      </div>
+
+      <div class="hidden md:flex items-center space-x-8 font-medium">
+        <a href="/" class="hover:text-[#00b4d8] transition">Home</a>
+        <a href="/upload" class="hover:text-[#00b4d8] transition">Upload Project</a>
+        <a href="/projects" class="hover:text-[#00b4d8] transition">Browse Projects</a>
+      </div>
+
+      <button id="menu-btn" class="md:hidden focus:outline-none">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-white" fill="none"
+             viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+    </div>
+
+    <div id="mobile-menu" class="hidden md:hidden bg-[#0077b6] mt-3 rounded-lg shadow-inner">
+      <a href="/" class="block py-2 px-4 hover:bg-[#00b4d8] hover:text-white transition">Home</a>
+      <a href="/upload" class="block py-2 px-4 hover:bg-[#00b4d8] hover:text-white transition">Upload Project</a>
+      <a href="/projects" class="block py-2 px-4 hover:bg-[#00b4d8] hover:text-white transition">Browse Projects</a>
+    </div>
+  </nav>
+
+  <!-- START MAIN -->
+  <main class="flex-1">
